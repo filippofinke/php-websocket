@@ -22,7 +22,7 @@ class Server {
   private function lastError() {
     $errorcode = socket_last_error();
     $errormsg = socket_strerror($errorcode);
-    $this->log("Couldn't create socket: [$errorcode] $errormsg", "error");
+    $this->log("[$errorcode] $errormsg", "ERROR");
   }
 
   public function debug() {
@@ -34,6 +34,25 @@ class Server {
     {
       echo date("H:i:s d/m/Y")." ".$type." - ".$text.PHP_EOL;
     }
+  }
+
+  public function send($message, $socket)
+  {
+
+  }
+
+  public function read($socket) {
+    $read = "";
+    while($read !== false)
+    {
+      $read = socket_read($socket, 1024);
+      if($read != "")
+      {
+        $this->log($read);
+      }
+    }
+    $this->lastError();
+    $this->log("Client disconnected");
   }
 
   public function start() {
@@ -60,6 +79,7 @@ class Server {
               $startTime = microtime();
               $this->log("New client connected - Handshake");
               $handshake = "";
+              $read = "";
               $received = false;
               while(!($read == "" && $received))
               {
@@ -83,8 +103,17 @@ class Server {
                 $this->lastError();
               }
               else {
-                $this->log("Handshake end ".(microtime() - $startTime)."ms");
-                $this->log("Connection closed");
+                $this->log("Handshake end");
+                
+                $pid = pcntl_fork();
+                if(!$pid) {
+                  socket_set_block($client);
+                  var_dump($client);
+                  $this->log($key." Process forked");
+                  $this->read($client);
+                  socket_close($client);
+                }
+
               }
             }
           }
@@ -106,7 +135,7 @@ class Server {
 
 }
 
-$s = new Server(1372);
+$s = new Server($argv[1]);
 $s->debug();
 $s->start();
 ?>

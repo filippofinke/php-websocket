@@ -1,0 +1,112 @@
+<?php
+/**
+*
+* @author Filippo Finke
+*/
+
+class Server {
+
+  /**
+  * See https://tools.ietf.org/html/rfc6455
+  */ 
+  private $token = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+  private $debug = false;
+
+  private $port;
+
+  private function getSignature($key) {
+    return base64_encode(sha1($key.$this->token, true));
+  }
+
+  private function lastError() {
+    $errorcode = socket_last_error();
+    $errormsg = socket_strerror($errorcode);
+    $this->log("Couldn't create socket: [$errorcode] $errormsg", "error");
+  }
+
+  public function debug() {
+    $this->debug = !$this->debug;
+  }
+
+  public function log($text, $type = 'info') {
+    if($this->debug)
+    {
+      echo date("H:i:s d/m/Y")." ".$type." - ".$text.PHP_EOL;
+    }
+  }
+
+  public function start() {
+    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+    if($socket === false)
+    {
+      $this->log($this->lastError());
+    }
+    else
+    {
+      $this->log("Socket created");
+      if(socket_bind($socket, "127.0.0.1", $this->port))
+      {
+        $this->log("Socket is now binded: 127.0.0.1 ".$this->port);
+        if(socket_listen($socket))
+        {
+          $this->log("Socket is listening");
+          socket_set_nonblock($socket);
+          while(true)
+          {
+            $client = socket_accept($socket);
+            if($client !== false)
+            {
+              $startTime = microtime();
+              $this->log("New client connected - Handshake");
+              $handshake = "";
+              $received = false;
+              while(!($read == "" && $received))
+              {
+                  $read = socket_read($client, 1024);
+                  if($read != "")
+                  {
+                    $handshake = $handshake."".$read;
+                    $received = true;
+                  }
+              }
+              preg_match_all('/Sec-WebSocket-Key: (.*?)\n/s', $handshake, $matches);
+              $key = trim($matches[1][0]);
+              $signature = $this->getSignature($key);
+              $this->log($key." - ".$signature);
+              $response = "HTTP/1.1 101 Switching Protocols\r\n".
+                          "Upgrade: websocket\r\n".
+                          "Connection: Upgrade\r\n".
+                          "Sec-WebSocket-Accept: $signature\r\n\r\n";
+              if(socket_write($client, $response) === false)
+              {
+                $this->lastError();
+              }
+              else {
+                $this->log("Handshake end ".(microtime() - $startTime)."ms");
+                $this->log("Connection closed");
+              }
+            }
+          }
+        }
+        else {
+          $this->log($this->lastError());
+        }
+      }
+      else {
+        $this->log($this->lastError());
+      }
+    }
+  }
+
+  public function __construct($port)
+  {
+    $this->port = $port;
+  }
+
+}
+
+$s = new Server(1372);
+$s->debug();
+$s->start();
+?>

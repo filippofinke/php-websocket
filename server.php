@@ -41,15 +41,24 @@ class Server {
 
   }
 
+  function strToBin($string){
+    $binary = '';
+    for ($i=0; $i<strlen($string); $i++){
+        $ord = ord($string[$i]);
+        $bin = base_convert($ord, 10, 2);
+        $binary .= $bin;
+    }
+    return $binary;
+  }
+
   public function read($socket) {
-    $read = "";
-    while($read !== false)
+    $data = "";
+    $bytes = 1;
+    while($bytes > 0)
     {
-      $read = socket_read($socket, 1024);
-      if($read != "")
-      {
-        $this->log($read);
-      }
+      $bytes = socket_recv($socket, $data, 2048, 0);
+      $read = $this->strToBin($data);
+      $this->log($read);
     }
     $this->lastError();
     $this->log("Client disconnected");

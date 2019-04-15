@@ -49,6 +49,7 @@ class Server {
     {
       $bytes = socket_recv($socket, $data, 2048, 0);
       $packet = new Packet($data);
+      $packet->log();
       $this->log($packet->getPayLoadLength()."# ".$packet->getPayloadString());
     }
     $this->lastError();
@@ -108,7 +109,6 @@ class Server {
                 $pid = pcntl_fork();
                 if(!$pid) {
                   socket_set_block($client);
-                  var_dump($client);
                   $this->log($key." Process forked");
                   $this->read($client);
                   socket_close($client);

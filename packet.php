@@ -44,14 +44,17 @@ class Packet {
 
 	public function getPayloadLength() {
 		$length = $this->bytes[1] & 0b01111111;
-		/* If this value is between 0 and 125, then it is the length of message. If it is 126, the following 2 bytes (16-bit unsigned integer) are the length. If it is 127, the following 8 bytes (64-bit unsigned integer) are the length. */
 		if($length == 126)
 		{
-
+			echo "2 bytes".PHP_EOL;
+			$int16 = pack("C*", $this->bytes[2],$this->bytes[3]);
+			$length = unpack("n", $int16)[1];
 		}
 		else if($length == 127)
 		{
-
+			echo "8 bytes".PHP_EOL;
+			$int64 = pack("C*", $this->bytes[2],$this->bytes[3],$this->bytes[4],$this->bytes[5],$this->bytes[6],$this->bytes[7],$this->bytes[8],$this->bytes[9]);
+			$length = unpack("Q", $int64)[1];
 		}
 		return $length;
 	}

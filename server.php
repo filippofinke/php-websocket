@@ -49,7 +49,7 @@ class Server {
     {
       $bytes = socket_recv($socket, $data, 2048, 0);
       $packet = new Packet($data);
-      var_dump($packet->getPayloadString());
+      $this->log($packet->getPayLoadLength()."# ".$packet->getPayloadString());
     }
     $this->lastError();
     $this->log("Client disconnected");

@@ -3,6 +3,7 @@
 *
 * @author Filippo Finke
 */
+require 'packet.php';
 
 class Server {
 
@@ -41,24 +42,14 @@ class Server {
 
   }
 
-  function strToBin($string){
-    $binary = '';
-    for ($i=0; $i<strlen($string); $i++){
-        $ord = ord($string[$i]);
-        $bin = base_convert($ord, 10, 2);
-        $binary .= $bin;
-    }
-    return $binary;
-  }
-
   public function read($socket) {
     $data = "";
     $bytes = 1;
     while($bytes > 0)
     {
       $bytes = socket_recv($socket, $data, 2048, 0);
-      $read = $this->strToBin($data);
-      $this->log($read);
+      $packet = new Packet($data);
+      var_dump($packet->getPayloadString());
     }
     $this->lastError();
     $this->log("Client disconnected");

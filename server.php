@@ -9,7 +9,7 @@ class Server {
 
   /**
   * See https://tools.ietf.org/html/rfc6455
-  */ 
+  */
   private $token = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
   private $debug = false;
@@ -105,7 +105,7 @@ class Server {
               }
               else {
                 $this->log("Handshake end");
-                
+
                 $pid = pcntl_fork();
                 if(!$pid) {
                   socket_set_block($client);

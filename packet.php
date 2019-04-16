@@ -1,8 +1,8 @@
-<?php 
+<?php
 
 class Packet {
 
-	public $bytes;
+	private $bytes;
 
 	public function __construct($string)
 	{
@@ -18,6 +18,7 @@ class Packet {
   	  	"Rsv3 ".$this->getRsv3()."\n".
   	  	"Opcode ".$this->getOpcode()."\n".
   	  	"isMasked ".$this->isMasked()."\n".
+				"PayloadTempLength ".$this->getPayloadTempLength()."\n".
   	  	"PayloadLength ".$this->getPayloadLength()."\n".
   	  	"MaskOffset ".$this->getMaskOffset()."\n".
   	  	"PayloadOffset ".$this->getPayloadOffset()."\n"
@@ -54,11 +55,11 @@ class Packet {
 
 	public function getOpcode() {
 		return $this->bytes[0] & 0b00001111;
-	} 
+	}
 
 	public function isMasked() {
 		return $this->getBit(7, $this->bytes[1]);
-	} 
+	}
 
 	public function getPayloadTempLength() {
 		$length = $this->bytes[1] & 0b01111111;
@@ -106,7 +107,7 @@ class Packet {
 		$mask[] = $this->bytes[$offset + 2];
 		$mask[] = $this->bytes[$offset + 3];
 		return $mask;
-	} 
+	}
 
 	public function getPayload() {
 		$payload = array_slice($this->bytes, $this->getPayloadOffset());

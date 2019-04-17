@@ -15,7 +15,14 @@ class Server
 
     private $debug = false;
 
+    public $onmessage;
+
     private $port;
+
+    public function onMessage($callback)
+    {
+    	$this->onmessage = $callback;
+    }
 
     private function getSignature($key)
     {
@@ -54,6 +61,11 @@ class Server
             $packet = new Packet($data);
             $packet->log();
             $this->log($packet->getPayLoadLength()."# ".$packet->getPayloadString());
+            if($this->onmessage != "")
+            {
+            	var_dump($this->onmessage("test"));
+            	$this->onmessage($packet->getPayloadString());
+            }
         }
         $this->lastError();
         $this->log("Client disconnected");
@@ -126,4 +138,14 @@ class Server
 
 $s = new Server($argv[1]);
 $s->debug();
-$s->start();
+
+$onMessage = function($arg) {
+	echo $arg.PHP_EOL;
+};
+$onMessage("ASD");
+$s->onMessage($onMessage);
+
+var_dump($s->onmessage);
+$s->onmessage("asd");
+
+//$s->start();
